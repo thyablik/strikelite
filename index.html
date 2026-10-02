@@ -4405,7 +4405,7 @@ const fl=new THREE.Mesh(new THREE.BoxGeometry(.1,.1,.05),new THREE.MeshBasicMate
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}};
 const CFG=Object.assign({look:1,stick:'float',op:.8,L:{},fov:75,vol:.8,q:touch?1:2,sh:1,po:1,fps:0,kf:1,iy:0,chc:'#ffffff',chs:1,br:1},JSON.parse(ls('sl_cfg')||'{}'));
 const p={x:0,z:32,yaw:0,pitch:0,hp:100,ar:0,money:800,slots:{1:null,2:'usp',3:'knife'},am:{},cur:2,rel:0,relT:1,relOn:0,cd:0,kills:0,wave:1,rec:0,nt:0,fl:0,zoom:0,phase:'buy',bt:0,won:0,alive:1,sc:[0,0],mode:'wave',draw:0,mv:0,rt:0,py:0,vy:0,og:1,cr:0,ct:0,ia:0,it:0,kp:0,sf:[0,0,0,0]};
-let state='menu',shop=0,bots=[],parts=[],tr=[],fire=false,mfire=false,keys={},joy={x:0,y:0},AC,MG,gz=0,kr=0,bobT=0,gsx=0,gsy=0,lyaw=0,lpit=0,kat=0;let bomb={state:0,x:0,z:0,t:0,plant:0,def:0,carrier:null},dmResp=0;
+let state='menu',shop=0,bots=[],parts=[],tr=[],fire=false,mfire=false,keys={},joy={x:0,y:0},AC,MG,gz=0,kr=0,bobT=0,gsx=0,gsy=0,lyaw=0,lpit=0,kat=0;let bomb={state:0,x:0,z:0,t:0,plant:0,def:0,carrier:null},dmResp=0,pTeam=1;
 const ray=new THREE.Raycaster(),lhB=new V();
 const kl=new THREE.PointLight(0xfff0cc,0,2.4);kl.position.set(0,.2,.1);let kobj=null,ktype='',mfI=0,ghosts=[];const gHist=[],TIPN=new V(0,0,-.31),TIPK=new V(0,-.13,-.25);
 const TN=90,tg=new THREE.BufferGeometry(),tP=new Float32Array(TN*3),tC=new Float32Array(TN*3),tL=new Float32Array(TN);tg.setAttribute('position',new THREE.BufferAttribute(tP,3));tg.setAttribute('color',new THREE.BufferAttribute(tC,3));
@@ -4674,7 +4674,7 @@ function feed(a,at,b,bt,w,head){if(!CFG.kf)return;const col=t=>t?'#7ab4ff':'#ffb
 d.innerHTML='<b style="color:'+(a=='Ты'?'#ffd24a':col(at))+'">'+a+'</b> <span style="opacity:.8">'+w+(head?' 🎯':'')+'</span> <b style="color:'+(b=='Ты'?'#ffd24a':col(bt))+'">'+b+'</b>';const kf=$('kf');kf.appendChild(d);while(kf.children.length>5)kf.firstChild.remove();setTimeout(()=>d.remove(),6000)}
 function tabRender(){ps.alive=p.alive;const row=x=>'<tr'+(x===ps?' class="me"':'')+(x.alive?'':' style="opacity:.4"')+'><td>'+x.n+'</td><td>'+x.k+'</td><td>'+x.d+'</td></tr>',
 tbl=(l,c,t)=>'<div><h4 style="color:'+c+'">'+t+' — '+l.filter(x=>x.alive).length+' жив.</h4><table><tr><th>Игрок</th><th>У</th><th>С</th></tr>'+l.slice().sort((a,b)=>b.k-a.k).map(row).join('')+'</table></div>',m5=p.mode=='m5';
-$('tab').innerHTML='<h3>'+(m5?'CT '+p.sc[0]+' : '+p.sc[1]+' T · раунд '+p.wave:'Волны · раунд '+p.wave)+'</h3><div class="tg">'+(m5?tbl(ros.filter(x=>x.team==1).concat([ps]),'#7ab4ff','CT')+tbl(ros.filter(x=>x.team==0),'#ffb25a','T'):tbl([ps],'#7ab4ff','Ты')+tbl(ros,'#ffb25a','Враги'))+'</div><div style="opacity:.7;margin-top:6px">Монеты: '+SV.coins+' · $'+p.money+'</div>'}
+$('tab').innerHTML='<h3>'+(m5?'CT '+p.sc[0]+' : '+p.sc[1]+' T · раунд '+p.wave:'Волны · раунд '+p.wave)+'</h3><div class="tg">'+(m5?tbl(ros.filter(x=>x.team==1).concat(pTeam===1?[ps]:[]),'#7ab4ff','CT')+tbl(ros.filter(x=>x.team==0).concat(pTeam===0?[ps]:[]),'#ffb25a','T'):tbl([ps],'#7ab4ff','Ты')+tbl(ros,'#ffb25a','Враги'))+'</div><div style="opacity:.7;margin-top:6px">Монеты: '+SV.coins+' · $'+p.money+'</div>'}
 function damage(n,src){if(!p.alive)return;if(p.ar>0){const a=Math.min(p.ar,n*.5);p.ar-=a;n-=a}p.hp-=n;p.fl=1;
 if(p.hp<=0){p.alive=0;p.hp=0;ps.d++;ps.alive=0;fire=false;mfire=false;if(src){src.st.k++;feed(src.st.n,src.team,'Ты',1,src.team?'M4A1':'AK-47',0)}
 if(p.mode=='wave'){let best=+(ls('slbest')||0);if(p.wave>best)ls('slbest',p.wave);over('ТЕБЯ ПОЛОЖИЛИ','Убито: '+p.kills+' · раунд '+p.wave)}
@@ -4705,7 +4705,7 @@ const hitMe=0;mpSend({t:'shot',ox:o2.x,oy:o2.y,oz:o2.z,tx:far.x,ty:far.y,tz:far.
 function pick(b){let best=null,bd=1e9;
 const enemyTeam=b.team?0:1;
 // player is enemy if their team differs
-if(p.alive&&(pTeam||1)!==b.team){best='P';bd=Math.hypot(p.x-b.x,p.z-b.z)}
+if(p.alive&&pTeam!==b.team){best='P';bd=Math.hypot(p.x-b.x,p.z-b.z)}
 for(const u of bots)if(!u.dead&&u.team===enemyTeam){const d=Math.hypot(u.x-b.x,u.z-b.z);if(d<bd){bd=d;best=u}}
 return best}
 function botUpd(b,dt){const g=b.g;b.mx.update(dt);
@@ -4766,7 +4766,7 @@ for(let i=0;i<TN;i++)if(tL[i]>0){tL[i]=Math.max(0,tL[i]-dt*3.2);const L=tL[i];tC
 if(spL>0){spL-=dt*1.3;for(let i=0;i<SPN;i++){spV[i*3+1]-=1.8*dt;for(let c=0;c<3;c++)spP[i*3+c]+=spV[i*3+c]*dt}spg.attributes.position.needsUpdate=true;sparks.material.opacity=Math.max(0,spL);if(spL<=0)sparks.visible=false}
 const sc=p.zoom&&w.sco,tf=(sc?28:CFG.fov)-8*p.kp;p.kp=Math.max(0,p.kp-dt*3);cam.fov+=(tf-cam.fov)*Math.min(1,dt*12);cam.updateProjectionMatrix();gun.visible=!!p.alive&&!(sc&&cam.fov<50);$('scope').style.display=sc&&cam.fov<40&&p.alive?'block':'none';
 p.pitch=Math.max(-1.4,Math.min(1.4,p.pitch));bots.forEach(b=>b.g.visible=true);
-if(p.alive){cam.position.set(p.x,p.py+1.6-.55*p.cr,p.z);cam.rotation.set(p.pitch,p.yaw,0)}else{const sp=bots.find(b=>b.team===(pTeam||1)&&!b.dead);if(sp){cam.position.set(sp.x,1.6,sp.z);cam.rotation.set(0,sp.g.rotation.y,0);sp.g.visible=false}else cam.position.y=2.4}
+if(p.alive){cam.position.set(p.x,p.py+1.6-.55*p.cr,p.z);cam.rotation.set(p.pitch,p.yaw,0)}else{const sp=bots.find(b=>b.team===pTeam&&!b.dead);if(sp){cam.position.set(sp.x,1.6,sp.z);cam.rotation.set(0,sp.g.rotation.y,0);sp.g.visible=false}else cam.position.y=2.4}
 bots.slice().forEach(b=>botUpd(b,dt));
 for(let i=tr.length-1;i>=0;i--){tr[i].t-=dt;if(tr[i].t<=0){S.remove(tr[i].l);tr.splice(i,1)}}
 p.fl=Math.max(0,p.fl-dt*2);
@@ -4804,8 +4804,11 @@ if(p.mode=='m5'&&p.phase=='fight'){
   }
 }
 if(p.phase=='fight'&&!p.won){if(p.mode=='pvp'||p.mode=='dm'){/* scored elsewhere */}else if(p.mode=='wave'){if(!bots.some(b=>!b.dead)){p.won=1;p.nt=3;const bn=1500+p.wave*100;p.money=Math.min(16000,p.money+bn);pop('+$'+bn+' за победу');earn(40+p.wave*10);banner('Раунд выигран!')}}
-else{p.rt-=dt;$('bb').textContent=Math.ceil(p.rt)+' с';const e=bots.filter(b=>!b.team&&!b.dead).length,al=bots.filter(b=>b.team&&!b.dead).length+(p.alive?1:0);
-if(e==0||al==0||p.rt<=0){const ct=e==0?1:al==0?0:al>=e;p.won=1;p.nt=4;p.sc[ct?0:1]++;const bn=ct?3000:1900;p.money=Math.min(16000,p.money+bn);pop('+$'+bn);earn(ct?50:15);banner(ct?'Раунд за CT!':'Раунд за T');hud()}}}
+else{p.rt-=dt;$('bb').textContent=Math.ceil(p.rt)+' с';
+const e=bots.filter(b=>!b.team&&!b.dead).length+(pTeam===0&&p.alive?1:0);
+const al=bots.filter(b=>b.team&&!b.dead).length+(pTeam===1&&p.alive?1:0);
+if(e==0||al==0||p.rt<=0){const ct=e==0?1:al==0?0:al>=e;p.won=1;p.nt=4;p.sc[ct?0:1]++;
+const myWin=(ct&&pTeam===1)||(!ct&&pTeam===0);const bn=myWin?3000:1900;p.money=Math.min(16000,p.money+bn);pop('+$'+bn);earn(myWin?50:15);banner(ct?'Раунд за CT!':'Раунд за T');hud()}}}
 if(p.won){p.nt-=dt;if(p.nt<=0)nextRound()}}
 // ---- loop ----
 let last=performance.now(),tm=0,fpsC=0,fpsT=0,tabT=0,myw=0,mpt=0;const tv=new V(),sv=new V();
@@ -4875,9 +4878,8 @@ applyLayout();applyGfx();
 
 
 // ---- side select ----
-let pTeam=1; // 1=CT, 0=T
-$('side_ct').onclick=()=>{pTeam=1;ps.team=1;$('sidepick').style.display='none';start(last_mode='m5')};
-$('side_t').onclick=()=>{pTeam=0;ps.team=0;$('sidepick').style.display='none';start(last_mode='m5')};
+$('side_ct').onclick=()=>{pTeam=1;ps.team=1;$('sidepick').style.display='none';start(last_mode='m5');banner('Сторона: CT')};
+$('side_t').onclick=()=>{pTeam=0;ps.team=0;$('sidepick').style.display='none';start(last_mode='m5');banner('Сторона: T')};
 $('sideback').onclick=()=>{state='menu';$('sidepick').style.display='none';$('menu').style.display='flex'};
 // ---- multiplayer 1v1 P2P (Trystero / BitTorrent trackers) ----
 let peer=null,conn=null,mpHost=0,mpReady=0,mpPeerId='',mpOpp=null,mpNetT=0,mpMap='dust';
@@ -4900,19 +4902,18 @@ let _tryLib=null;
 function mpLoadLib(){
   if(_tryLib)return _tryLib;
   _tryLib=(async()=>{
-    // Trystero — serverless WebRTC (Nostr default, then torrent)
     const urls=[
-      'https://esm.run/trystero@0.25.4',
+      'https://esm.sh/trystero@0.20.0',
+      'https://cdn.jsdelivr.net/npm/trystero@0.20.0/+esm',
+      'https://esm.run/trystero@0.20.0',
       'https://esm.sh/trystero@0.25.4',
-      'https://cdn.jsdelivr.net/npm/trystero@0.25.4/+esm',
-      'https://esm.sh/@trystero-p2p/torrent@0.25.4',
-      'https://esm.run/trystero'
+      'https://esm.run/trystero@0.25.4'
     ];
     let last;
     for(const u of urls){
       try{
         const m=await import(u);
-        if(m&&m.joinRoom){window._trystero=m;return m}
+        if(m&&typeof m.joinRoom==='function'){window._trystero=m;return m}
       }catch(e){last=e;console.warn('trystero load fail',u,e)}
     }
     throw last||new Error('trystero CDN unavailable');
@@ -4928,7 +4929,19 @@ async function mpJoinRoom(code,isHost){
   const roomId=('sl-'+code).toLowerCase();
   const room=lib.joinRoom({appId:'strike-lite-v1'}, roomId);
   mpRoom=room;
-  const [send,get]=room.makeAction('g');
+  let send,get;
+  try{
+    const made=room.makeAction('g');
+    if(Array.isArray(made)){[send,get]=made}
+    else if(made&&typeof made==='object'){send=made.send||made[0];get=made.get||made.receive||made[1]}
+    else throw new Error('makeAction format');
+  }catch(e){
+    // fallback: use room.send / onPeerJoin only messaging via announce
+    console.warn('makeAction',e);
+    send=(d)=>{try{if(room.broadcast)room.broadcast(d);else if(room.send)room.send(d)}catch(x){}};
+    get=(fn)=>{room.onPeerJoin=room.onPeerJoin||function(){};};
+  }
+  if(!send||!get)throw new Error('P2P actions unavailable');
   mpSendAction=send;
   get((data,peerId)=>{try{mpOnData(data)}catch(e){console.error(e)}});
   const onJoin=id=>{
