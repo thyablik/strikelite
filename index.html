@@ -4774,89 +4774,140 @@ applyLayout();applyGfx();
 
 
 // ---- multiplayer 1v1 P2P ----
-let peer=null,conn=null,mpHost=0,mpReady=0,mpPeerId='',mpOpp=null,mpNetT=0,mpMap='dust',mpRetry=0;
+let peer=null,conn=null,mpHost=0,mpReady=0,mpPeerId='',mpOpp=null,mpNetT=0,mpMap='dust',mpRetry=0,mpJoinTries=0,mpJoinTarget='';
+// STUN + free public TURN (needed when players behind different NATs / mobile)
 const MP_ICE={iceServers:[
   {urls:'stun:stun.l.google.com:19302'},
   {urls:'stun:stun1.l.google.com:19302'},
   {urls:'stun:stun.cloudflare.com:3478'},
-  {urls:'stun:global.stun.twilio.com:3478'}
+  {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:80?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}
 ]};
 const mpSend=d=>{if(conn&&conn.open)try{conn.send(d)}catch(e){}};
-function mpCleanup(){mpReady=0;mpOpp=null;if(conn){try{conn.close()}catch(e){}}conn=null;if(peer){try{peer.destroy()}catch(e){}}peer=null;mpPeerId=''}
+function mpCleanup(){mpReady=0;mpOpp=null;mpJoinTries=0;mpJoinTarget='';if(conn){try{conn.close()}catch(e){}}conn=null;if(peer){try{peer.destroy()}catch(e){}}peer=null;mpPeerId=''}
 function openMP(){state='mp';$('mpanel').style.display='flex';
   let st='P2P готов · создай или введи код';
   if(typeof Peer==='undefined')st='PeerJS не загрузился — нужен интернет';
-  else if(location.protocol==='file:')st='⚠ Открыто как file:// — WebRTC может не работать. Запусти через localhost';
+  else if(location.protocol==='file:')st='⚠ Открыто как file:// — WebRTC может не работать';
   $('mpst').textContent=st;$('mpcode').textContent='';$('mpin').value='';mpRetry=0}
 $('mpback').onclick=()=>{mpCleanup();state='menu';$('mpanel').style.display='none';$('menu').style.display='flex'};
 function mpShortId(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='SL';for(let i=0;i<6;i++)s+=c[Math.random()*c.length|0];return s}
 function mpErrMsg(type){
-  if(type==='server-error'||type==='network')return 'Сервер недоступен. 1) Не file:// 2) Выключи VPN 3) Жми СОЗДАТЬ ещё раз';
-  if(type==='peer-unavailable')return 'Комната не найдена. Проверь код — хост должен быть онлайн.';
+  if(type==='server-error'||type==='network')return 'Сервер недоступен. Выключи VPN и попробуй снова';
+  if(type==='peer-unavailable')return 'Комната не найдена. Хост должен ждать на экране 1v1.';
   if(type==='unavailable-id')return 'Код занят, пробуем другой…';
   if(type==='invalid-id')return 'Неверный код комнаты';
   if(type==='browser-incompatible')return 'Браузер не поддерживает WebRTC';
   return 'Ошибка: '+type;
 }
 function mpMakePeer(wantId,onOpen){
-  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен. Нужен интернет + http/https (не file://)';return}
+  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен. Нужен интернет';return}
   if(peer){try{peer.destroy()}catch(e){}}
-  peer=null;conn=null;
-  // Official PeerJS Cloud (default) + STUN. Retry once with explicit host if needed.
-  const opts={config:MP_ICE,debug:2,pingInterval:3000};
-  if(mpRetry>0){opts.host='0.peerjs.com';opts.port=443;opts.path='/';opts.secure=true}
-  $('mpst').textContent=mpRetry?'Повтор к 0.peerjs.com…':'Подключение к PeerJS Cloud…';
+  peer=null;if(!mpJoinTarget)conn=null;
+  const opts={host:'0.peerjs.com',port:443,path:'/',secure:true,config:MP_ICE,debug:1,pingInterval:4000};
+  $('mpst').textContent='Подключение к PeerJS…';
   try{peer=wantId?new Peer(wantId,opts):new Peer(opts)}catch(e){$('mpst').textContent='Ошибка Peer: '+e.message;return}
   let opened=0;
-  const tmo=setTimeout(()=>{if(!opened){$('mpst').textContent='Таймаут сервера. Проверь интернет / не file:// / VPN';}},15000);
-  peer.on('open',pid=>{opened=1;clearTimeout(tmo);mpPeerId=pid;mpRetry=0;$('mpst').textContent='Онлайн ✓';onOpen&&onOpen(pid)});
+  const tmo=setTimeout(()=>{if(!opened)$('mpst').textContent='Таймаут PeerJS. Проверь интернет / VPN';},18000);
+  peer.on('open',pid=>{opened=1;clearTimeout(tmo);mpPeerId=pid;mpRetry=0;$('mpst').textContent=mpHost?'Онлайн ✓ Ждём соперника…':'Онлайн ✓ Соединяем…';onOpen&&onOpen(pid)});
   peer.on('error',e=>{
     console.error('Peer error',e.type,e);
     if(e.type==='unavailable-id'&&wantId){clearTimeout(tmo);mpMakePeer(mpShortId(),onOpen);return}
     if((e.type==='server-error'||e.type==='network'||e.type==='socket-error'||e.type==='socket-closed')&&!opened){
       clearTimeout(tmo);
-      if(mpRetry<2){mpRetry++;setTimeout(()=>mpMakePeer(wantId,onOpen),600);return}
-      $('mpst').textContent=mpErrMsg('server-error');
-      return;
+      if(mpRetry<3){mpRetry++;setTimeout(()=>mpMakePeer(wantId,onOpen),800);return}
+      $('mpst').textContent=mpErrMsg('server-error');return;
     }
+    if(e.type==='peer-unavailable'){$('mpst').textContent=mpErrMsg('peer-unavailable');return}
     if(!opened)clearTimeout(tmo);
     $('mpst').textContent=mpErrMsg(e.type);
   });
-  peer.on('disconnected',()=>{if(!mpReady)$('mpst').textContent='Отключён — переподключение…';try{peer.reconnect()}catch(e){}});
-  peer.on('connection',c=>{if(conn&&conn.open){c.close();return}conn=c;mpBindConn()});
+  peer.on('disconnected',()=>{if(!mpReady){try{peer.reconnect()}catch(e){}}});
+  peer.on('connection',c=>{
+    // host accepts incoming
+    if(conn&&conn.open){try{c.close()}catch(e){}return}
+    conn=c;mpBindConn();
+  });
 }
 function mpBindConn(){
-  conn.on('open',()=>{$('mpst').textContent='Связь установлена!';mpOnConnected()});
+  if(!conn)return;
+  conn.on('open',()=>{
+    $('mpst').textContent='Связь установлена!';
+    mpJoinTries=0;
+    mpOnConnected();
+  });
   conn.on('data',mpOnData);
-  conn.on('close',()=>{banner('Соперник отключился');mpReady=0;if(state=='play'&&p.mode=='pvp'){over('СОПЕРНИК ВЫШЕЛ','Победа');mpCleanup()}});
-  conn.on('error',e=>{$('mpst').textContent='Ошибка канала: '+(e.message||e.type||'связь')});
+  conn.on('close',()=>{
+    if(mpReady&&state=='play'&&p.mode=='pvp'){banner('Соперник отключился');over('СОПЕРНИК ВЫШЕЛ','Победа');mpCleanup()}
+    else if(!mpReady)$('mpst').textContent='Канал закрыт. Попробуй снова';
+  });
+  conn.on('error',e=>{console.error('conn error',e);$('mpst').textContent='Ошибка канала — пробуем ещё…'});
+  // ICE state hint
+  try{
+    const pc=conn.peerConnection;
+    if(pc){
+      pc.oniceconnectionstatechange=()=>{
+        const s=pc.iceConnectionState;
+        if(!mpReady&&(s==='checking'||s==='connected'||s==='completed'))$('mpst').textContent='ICE: '+s+'…';
+        if(s==='failed'){$('mpst').textContent='ICE failed — NAT. Жми ПОДКЛЮЧИТЬСЯ ещё раз';mpTryReconnect()}
+      };
+      pc.onconnectionstatechange=()=>{
+        if(pc.connectionState==='failed'&&!mpReady){$('mpst').textContent='Соединение failed. Повтор…';mpTryReconnect()}
+      };
+    }
+  }catch(e){}
+}
+function mpTryReconnect(){
+  if(mpHost||!mpJoinTarget||mpReady)return;
+  if(mpJoinTries>=4){$('mpst').textContent='Не удалось связаться. Хост на экране 1v1? Один Wi‑Fi/сеть?';return}
+  mpJoinTries++;
+  setTimeout(()=>{
+    if(mpReady||!peer)return;
+    $('mpst').textContent='Повтор '+mpJoinTries+'/4 к '+mpJoinTarget+'…';
+    try{if(conn)conn.close()}catch(e){}
+    conn=peer.connect(mpJoinTarget,{reliable:true,serialization:'json'});
+    mpBindConn();
+  },1500);
 }
 $('mphost').onclick=()=>{
-  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен — нужен интернет и http/https';return}
+  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен — нужен интернет';return}
   $('mpst').textContent='Создаём комнату…';$('mpcode').textContent='…';
-  mpHost=1;mpMap=Math.random()<.5?'dust':'factory';mpRetry=0;
+  mpHost=1;mpMap=Math.random()<.5?'dust':'factory';mpRetry=0;mpJoinTarget='';
   const rid=mpShortId();
-  mpMakePeer(rid,pid=>{$('mpcode').textContent=pid;$('mpst').textContent='Ждём соперника… Отправь код другу';
-    try{navigator.clipboard&&navigator.clipboard.writeText(pid)}catch(e){}});
+  mpMakePeer(rid,pid=>{
+    $('mpcode').textContent=pid;
+    $('mpst').textContent='Ждём соперника… Не уходи с этого экрана!';
+    try{navigator.clipboard&&navigator.clipboard.writeText(pid)}catch(e){}
+  });
 };
 $('mpjoin').onclick=()=>{
-  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен — нужен интернет и http/https';return}
+  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен — нужен интернет';return}
   const id=($('mpin').value||'').trim().toUpperCase().replace(/\s+/g,'');
   if(!id){$('mpst').textContent='Введи код комнаты';return}
-  $('mpst').textContent='Подключаемся к '+id+'…';mpHost=0;mpRetry=0;
+  mpHost=0;mpRetry=0;mpJoinTries=0;mpJoinTarget=id;
+  $('mpst').textContent='Подключаемся к '+id+'…';
   mpMakePeer(null,()=>{
     if(!peer)return;
-    conn=peer.connect(id,{reliable:true,serialization:'json'});
-    if(!conn){$('mpst').textContent='Не удалось начать соединение';return}
-    mpBindConn();
-    // timeout if host offline
-    setTimeout(()=>{if(!mpReady&&(!conn||!conn.open))$('mpst').textContent='Нет ответа. Хост онлайн? Код верный?'},12000);
+    // small delay so host is fully registered on broker
+    setTimeout(()=>{
+      if(!peer||mpReady)return;
+      conn=peer.connect(id,{reliable:true,serialization:'json'});
+      if(!conn){$('mpst').textContent='Не удалось начать соединение';return}
+      mpBindConn();
+      setTimeout(()=>{if(!mpReady&&(!conn||!conn.open))mpTryReconnect()},8000);
+      setTimeout(()=>{if(!mpReady&&(!conn||!conn.open))$('mpst').textContent='Нет ответа. Хост должен ждать на экране 1v1. Код: '+id},20000);
+    },700);
   });
 };
 function mpOnConnected(){
   if(mpHost){
     mpSend({t:'hello',map:mpMap,name:'Хост'});
-    setTimeout(()=>mpBegin(),400);
+    setTimeout(()=>mpBegin(),300);
+  }else{
+    // joiner: ask host to hello if we connected first
+    mpSend({t:'hello_req'});
   }
 }
 function mpBegin(){
@@ -4892,7 +4943,8 @@ function mpSpawnOpp(){
 }
 function mpOnData(d){
   if(!d||!d.t)return;
-  if(d.t=='hello'){mpMap=d.map||'dust';mpSend({t:'hello_ack'});mpBegin()}
+  if(d.t=='hello_req'&&mpHost){mpSend({t:'hello',map:mpMap,name:'Хост'});return}
+  if(d.t=='hello'){mpMap=d.map||'dust';mpSend({t:'hello_ack'});if(!mpReady)mpBegin()}
   if(d.t=='hello_ack'&&mpHost){/* already began */}
   if(d.t=='st'&&mpOpp){
     mpOpp.x=d.x;mpOpp.z=d.z;mpOpp.yaw=d.yaw;mpOpp.hp=d.hp;mpOpp.alive=d.alive;
