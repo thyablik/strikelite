@@ -1,6 +1,5 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Strike Lite</title>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script>window.Peer||document.write('<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"><\/script>')</script>
+<!-- multiplayer via Trystero (BitTorrent trackers), loaded on demand -->
 <!-- Props: Kenney Starter Kits (CC0/MIT). Models: soldier (Quaternius Toon Shooter Kit, CC0) and weapons (Tiny Strike by Guy Zyskind, ISC) -->
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <style>
@@ -100,11 +99,11 @@ body:not([data-s=play]):not([data-s=edit]) .hud{display:none}.b{touch-action:non
 <div id="jb" class="b"><div id="jk"></div></div>
 <div id="shop"><div class="sht"><h2>ЗАКУП</h2><div id="smn"></div><button id="fight">В БОЙ</button></div><div id="items"></div></div>
 <div id="menu" class="ov"><h1>STRIKE LITE</h1><div class="sub">ЗАКУПАЙСЯ · СТРЕЛЯЙ · ЗАРАБАТЫВАЙ</div>
-<div class="bx"><div><b>Телефон</b><br>Лево — ходьба, право — обзор,<br>ОГОНЬ / R / ⇄ — кнопки</div><div><b>ПК</b><br>WASD, мышь, ПКМ — прицел<br>Пробел — прыжок, C — присесть<br>F — осмотр, Tab — таблица, B — закуп, 1/2/3 — оружие, R</div><div><b>Режимы</b><br>Волны — случайная карта<br>5 на 5 — Город · 1 на 1 — P2P</div><div><b>Деньги</b><br>Убийства и победа в раунде<br>дают монеты на закуп</div></div>
-<p id="rec"></p><div class="cnb">🪙 <b class="cn">0</b></div><div class="bx"><button id="go" disabled>ЗАГРУЗКА…</button><button id="go2" class="alt" disabled>5 НА 5</button><button id="go3" class="alt" disabled style="background:linear-gradient(#ff6a4a,#c02818);box-shadow:0 6px 0 #6a1808,0 10px 24px #0008;color:#fff">1 НА 1</button></div><div class="bx"><button id="invb" class="sm" disabled>🎒 ИНВЕНТАРЬ</button><button id="casb" class="sm" disabled>📦 КЕЙСЫ</button><button id="bpb" class="sm" disabled>🎖 БАТТЛПАСС</button></div><button id="setb" class="alt sm">⚙ НАСТРОЙКИ</button></div>
+<div class="bx"><div><b>Телефон</b><br>Лево — ходьба, право — обзор,<br>ОГОНЬ / R / ⇄ — кнопки</div><div><b>ПК</b><br>WASD, мышь, ПКМ — прицел<br>Пробел — прыжок, C — присесть<br>F — осмотр, Tab — таблица, B — закуп, 1/2/3 — оружие, R</div><div><b>Режимы</b><br>Волны · Deathmatch · 5v5 (бомба)<br>1 на 1 — P2P</div><div><b>Деньги</b><br>Убийства и победа в раунде<br>дают монеты на закуп</div></div>
+<p id="rec"></p><div class="cnb">🪙 <b class="cn">0</b></div><div class="bx"><button id="go" disabled>ЗАГРУЗКА…</button><button id="go2" class="alt" disabled>5 НА 5</button><button id="godm" class="alt" disabled style="background:linear-gradient(#ff8a4a,#c04818);box-shadow:0 6px 0 #6a2808,0 10px 24px #0008;color:#fff">DEATHMATCH</button><button id="go3" class="alt" disabled style="background:linear-gradient(#ff6a4a,#c02818);box-shadow:0 6px 0 #6a1808,0 10px 24px #0008;color:#fff">1 НА 1</button></div><div class="bx"><button id="invb" class="sm" disabled>🎒 ИНВЕНТАРЬ</button><button id="casb" class="sm" disabled>📦 КЕЙСЫ</button><button id="bpb" class="sm" disabled>🎖 БАТТЛПАСС</button></div><button id="setb" class="alt sm">⚙ НАСТРОЙКИ</button></div>
 <div id="mpanel" class="ov" style="display:none;z-index:22"><h1 style="font-size:48px">1 НА 1</h1>
-<div class="sub" id="mpst">P2P · PeerJS</div>
-<p style="max-width:440px;font:15px sans-serif;opacity:.85">1) Один жмёт СОЗДАТЬ и копирует код<br>2) Второй вставляет код и жмёт ПОДКЛЮЧИТЬСЯ<br>Нужен интернет. Не открывай как file:// — лучше через Live Server / localhost.<br>Если ошибка сервера: не открывай file://, выключи VPN, нажми СОЗДАТЬ снова.</p>
+<div class="sub" id="mpst">P2P · Trystero</div>
+<p style="max-width:440px;font:15px sans-serif;opacity:.85">1) Один жмёт <b>СОЗДАТЬ</b> и копирует код<br>2) Второй вставляет код → <b>ПОДКЛЮЧИТЬСЯ</b><br>Работает на Vercel без своего сервера (WebRTC + трекеры).<br>Оба остаются на этом экране до «Связь установлена!».</p>
 <div class="cnb" id="mpcode" style="font-size:36px;letter-spacing:4px;min-height:44px"></div>
 <input id="mpin" placeholder="Код комнаты" style="font:22px Impact,sans-serif;padding:10px 18px;border-radius:8px;border:2px solid #f5b73a88;background:#0008;color:#ffd75a;text-align:center;letter-spacing:3px;width:min(280px,80vw)">
 <div class="bx"><button id="mphost">СОЗДАТЬ</button><button id="mpjoin" class="alt">ПОДКЛЮЧИТЬСЯ</button></div>
@@ -4379,7 +4378,7 @@ ak47:{n:'AK-47',p:2700,t:1,d:36,r:.1,m:30,rs:90,k:300,rc:.014,sp:.008,f:1500,s:R
 ssg08:{n:'SSG 08',p:1700,t:1,d:88,r:1.3,m:10,rs:90,k:300,rc:.04,sp:.004,f:1000,rt:2.2,sco:1,s:[.55,.2,-.22,-.25],b:'awp',v:[.88,.9,.8]},
 awp:{n:'AWP',p:4750,t:1,d:115,r:1.2,m:10,rs:30,k:100,rc:.045,sp:.004,f:900,rt:2.4,sco:1,s:[.55,.2,-.22,-.25]},
 m249:{n:'M249',p:5200,t:1,d:32,r:.08,m:100,rs:200,k:300,rc:.01,sp:.012,f:1300,rt:4.5,s:RF,b:'ak47',v:[1.25,1.35,1.2]},
-armor:{n:'Бронежилет',p:650},knife:{n:'Нож',t:3,melee:1,d:55,r:.45,k:1500}};
+armor:{n:'Бронежилет',p:650},knife:{n:'Нож',t:3,melee:1,d:65,r:.38,k:1500}};
 for(const k in W){const w=W[k];w.s2=k=='armor'?'Броня +100':w.melee?'':'Урон '+w.d+(w.pel?'×'+w.pel:'')+' · обойма '+w.m}
 const M={},b64=s=>{const n=atob(s),u=new Uint8Array(n.length);for(let i=0;i<n.length;i++)u[i]=n.charCodeAt(i);return u.buffer};
 function fix(g){g.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=true;const m=o.material;m.metalness=Math.min(m.metalness||0,.25);m.roughness=Math.max(m.roughness||1,.55)}})}
@@ -4389,7 +4388,7 @@ const fl=new THREE.Mesh(new THREE.BoxGeometry(.1,.1,.05),new THREE.MeshBasicMate
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}};
 const CFG=Object.assign({look:1,stick:'float',op:.8,L:{},fov:75,vol:.8,q:touch?1:2,sh:1,po:1,fps:0,kf:1,iy:0,chc:'#ffffff',chs:1,br:1},JSON.parse(ls('sl_cfg')||'{}'));
 const p={x:0,z:32,yaw:0,pitch:0,hp:100,ar:0,money:800,slots:{1:null,2:'usp',3:'knife'},am:{},cur:2,rel:0,relT:1,relOn:0,cd:0,kills:0,wave:1,rec:0,nt:0,fl:0,zoom:0,phase:'buy',bt:0,won:0,alive:1,sc:[0,0],mode:'wave',draw:0,mv:0,rt:0,py:0,vy:0,og:1,cr:0,ct:0,ia:0,it:0,kp:0,sf:[0,0,0,0]};
-let state='menu',shop=0,bots=[],parts=[],tr=[],fire=false,mfire=false,keys={},joy={x:0,y:0},AC,MG,gz=0,kr=0,bobT=0,gsx=0,gsy=0,lyaw=0,lpit=0,kat=0;
+let state='menu',shop=0,bots=[],parts=[],tr=[],fire=false,mfire=false,keys={},joy={x:0,y:0},AC,MG,gz=0,kr=0,bobT=0,gsx=0,gsy=0,lyaw=0,lpit=0,kat=0;let bomb={state:0,x:0,z:0,t:0,plant:0,def:0,carrier:null},dmResp=0;
 const ray=new THREE.Raycaster(),lhB=new V();
 const kl=new THREE.PointLight(0xfff0cc,0,2.4);kl.position.set(0,.2,.1);let kobj=null,ktype='',mfI=0,ghosts=[];const gHist=[],TIPN=new V(0,0,-.31),TIPK=new V(0,-.13,-.25);
 const TN=90,tg=new THREE.BufferGeometry(),tP=new Float32Array(TN*3),tC=new Float32Array(TN*3),tL=new Float32Array(TN);tg.setAttribute('position',new THREE.BufferAttribute(tP,3));tg.setAttribute('color',new THREE.BufferAttribute(tC,3));
@@ -4407,16 +4406,16 @@ const rh=glove(1),lh=glove(-1);
 function setGloves(){const[k,si]=SV.eq.gl.split('|'),st=+si,C={gl_sport:[0x1f1f1f,0x3b4a2c],gl_moto:[0x17171c,0x8a1a1a],gl_driver:[0x7a5230,0x2c2c32]}[k];
 [rh,lh].forEach(h=>h.traverse(o=>{if(!o.isMesh)return;if(o.name=='arm'){o.material.color.set(C[1]);return}o.userData.bm.color.set(C[0]);o.material=st?skinMat(o.userData.bm,st,1):o.userData.bm}))}
 function equip(draw=1){ghosts.forEach(g=>cam.remove(g));ghosts=[];while(gun.children.length)gun.remove(gun.children[0]);const k=p.slots[p.cur],w=W[k],v=w.v||[1,1,1];let m,s,x,y,z;
-if(w.melee){const[kc,ks]=SV.eq.knife.split('|');m=mkKnifeObj(kc.slice(3));kobj=m;ktype=kc.slice(3);if(+ks)applySkin(m,+ks,0);s=1;x=.2;y=-.17;z=-.2;m.rotation.set(.2,.3,0);muz=m}
+if(w.melee){const[kc,ks]=SV.eq.knife.split('|');m=mkKnifeObj(kc.slice(3));kobj=m;ktype=kc.slice(3);if(+ks)applySkin(m,+ks,0);s=1;x=.22;y=-.06;z=-.18;m.rotation.set(.15,.25,0);muz=m}
 else{kobj=null;[s,x,y,z]=w.s;m=M[w.b||k].scene.clone();m.scale.set(s*v[0],s*v[1],s*v[2]);const st=+(SV.eq.w[k]||0);if(st)applySkin(m,st,0);muz=m;m.traverse(o=>{if(o.name=='Muzzle')muz=o});fl.scale.setScalar(1/s);fl.position.set(0,0,0);muz.add(fl)}
 m.position.set(x,y,z);piv.set(x,y,z);gun.add(m,kl);
 const b0=new THREE.Box3().setFromObject(M[w.melee?'knife':(w.b||k)].scene),mn=b0.min,len=b0.max.z-mn.z,hh=b0.max.y-mn.y,sy=w.melee?s:s*v[1],sz=w.melee?s:s*v[2],pt=(fy,fz,ox)=>new V(x+(ox||0),y+(mn.y+hh*fy)*sy,z+(mn.z+len*fz)*sz),pis=w.t==2;
 if(w.melee){rh.position.copy(new V(0,-.002,.082).applyEuler(m.rotation).add(m.position));rh.rotation.set(m.rotation.x+.08,m.rotation.y,0)}else{rh.position.copy(pt(pis?.3:.2,pis?.8:.74));rh.rotation.set(.1,0,0)}lhB.copy(pis?pt(.18,.74,-.045):pt(.3,.3));lh.position.copy(lhB);lh.visible=!w.melee;gun.add(rh,lh);
-$('sc').classList.toggle('on',!!w.sco);p.draw=draw;hud()}
+$('sc').classList.toggle('on',!!w.sco);p.draw=draw;if(draw&&w.melee)snd(.25,.12,800);hud()}
 function snd(vol,dur,freq){if(!AC)return;const n=AC.sampleRate*dur|0,buf=AC.createBuffer(1,n,AC.sampleRate),d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
 const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();f.frequency.value=freq;g.gain.value=vol;s.buffer=buf;s.connect(f);f.connect(g);g.connect(MG||AC.destination);s.start()}
 function hud(){const k=p.slots[p.cur],a=p.am[k];$('hp').innerHTML='❤ '+Math.max(0,p.hp|0)+(p.ar>0?' &nbsp;🛡 '+(p.ar|0):'');
-$('mn').innerHTML='<span class="coin">$</span> '+p.money;$('score').textContent=p.mode=='m5'?'CT '+p.sc[0]+' : '+p.sc[1]+' T':(p.mode=='pvp'?'Ты '+p.sc[1]+' : '+p.sc[0]+' Соп.':'');
+$('mn').innerHTML='<span class="coin">$</span> '+p.money;$('score').textContent=p.mode=='m5'?'CT '+p.sc[0]+' : '+p.sc[1]+' T'+(bomb.state==2?' · 💣 '+Math.ceil(bomb.t)+'с':bomb.state==1?' · 💣 посадка…':''):(p.mode=='pvp'?'Ты '+p.sc[1]+' : '+p.sc[0]+' Соп.':(p.mode=='dm'?'DM '+p.kills+'/20':''));
 if(k)$('st').innerHTML=W[k].n+'<br>'+(a?(p.rel>0?'перезарядка':a.mag+' / '+a.res):'')+'<br>Убито: '+p.kills+' · Раунд '+p.wave}
 function banner(t){const b=$('bn');b.textContent=t;b.style.opacity=1;setTimeout(()=>b.style.opacity=0,1800)}
 function pop(t){const d=document.createElement('div');d.className='pop';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1300)}
@@ -4570,11 +4569,35 @@ function clearUnits(){bots.forEach(b=>S.remove(b.g));bots=[];parts=[]}
 function spawnWave(){ros=[];const n=Math.min(2+p.wave,9);for(let i=0;i<n;i++){let x,z,k=0;do{x=(Math.random()-.5)*72;z=-38+Math.random()*40;k++}while((hit(x,z,.8)||Math.hypot(x-p.x,z-p.z)<22)&&k<50);mkUnit(0,x,z,wst())}banner('Раунд '+p.wave)}
 function spawn5(){const T0=ros.filter(x=>x.team==0),C0=ros.filter(x=>x.team==1);ros.forEach(x=>x.alive=1);for(let i=0;i<5;i++)mkUnit(0,-12+i*6,-34,T0[i]);[-12,-6,6,12].forEach((x,i)=>mkUnit(1,x,35,C0[i]))}
 function startBuy(){p.phase='buy';p.bt=15;p.won=0;p.alive=1;p.x=0;p.z=p.mode=='m5'?35:32;p.yaw=0;p.pitch=0;p.py=0;p.vy=0;p.cr=0;p.ct=0;p.ia=0;fire=false;mfire=false;if(p.mode=='m5')p.hp=100;
-clearUnits();if(p.mode=='m5'){spawn5();banner('Раунд '+p.wave)}$('bb').style.opacity=1;$('shopbtn').style.display='flex';hud();openShop()}
-function startFight(){if(p.phase!='buy')return;p.phase='fight';p.rt=90;$('bb').textContent='';$('shopbtn').style.display='none';if(shop)closeShop();if(p.mode=='wave')spawnWave();else banner('В БОЙ!')}
-function reset(){clearUnits();ps.k=ps.d=0;ps.alive=1;if(p.mode=='m5')mkRoster();else ros=[];Object.assign(p,{earn:0,hp:100,ar:0,money:800,slots:{1:null,2:'usp',3:'knife'},am:{usp:{mag:12,res:48}},cur:2,rel:0,relOn:0,kills:0,wave:1,nt:0,fl:0,zoom:0,sc:[0,0],alive:1});equip();startBuy()}
+clearUnits();bomb={state:0,x:0,z:0,t:0,plant:0,def:0,carrier:null};if(p.mode=='m5'){spawn5();banner('Раунд '+p.wave+' · Бомба A/B');mkBombSites()}$('bb').style.opacity=1;$('shopbtn').style.display='flex';hud();openShop()}
+function mkBombSites(){
+  // remove old
+  S.children.filter(c=>c.userData&&c.userData.bs).forEach(c=>S.remove(c));
+  [[-30,20,'A'],[30,20,'B']].forEach(([x,z,n])=>{
+    const g=new THREE.Group();g.userData={bs:1};
+    const ring=new THREE.Mesh(new THREE.RingGeometry(2.2,2.6,24),new THREE.MeshBasicMaterial({color:0xff4444,side:THREE.DoubleSide,transparent:true,opacity:.55}));
+    ring.rotation.x=-Math.PI/2;g.add(ring);
+    const spr=document.createElement('canvas');spr.width=64;spr.height=64;const cx=spr.getContext('2d');cx.fillStyle='#ff4444';cx.font='bold 40px Impact';cx.textAlign='center';cx.fillText(n,32,42);
+    const tex=new THREE.CanvasTexture(spr);const sm=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));sm.scale.set(3,3,1);sm.position.y=3;g.add(sm);
+    g.position.set(x,0.05,z);S.add(g);
+  });
+}
+function startFight(){if(p.phase!='buy')return;p.phase='fight';p.rt=p.mode=='m5'?105:90;$('bb').textContent='';$('shopbtn').style.display='none';if(shop)closeShop();bomb={state:0,x:0,z:0,t:0,plant:0,def:0,carrier:null};
+if(p.mode=='wave')spawnWave();else if(p.mode=='m5'){banner('В БОЙ! Сайт A/B — бомба');}else banner('В БОЙ!')}
+function reset(){clearUnits();ps.k=ps.d=0;ps.alive=1;bomb={state:0,x:0,z:0,t:0,plant:0,def:0,carrier:null};dmResp=0;
+if(p.mode=='m5')mkRoster();else if(p.mode=='dm')ros=[];else ros=[];
+if(p.mode=='dm'){
+  Object.assign(p,{earn:0,hp:100,ar:100,money:16000,slots:{1:'ak47',2:'usp',3:'knife'},am:{ak47:{mag:30,res:90},usp:{mag:12,res:48}},cur:1,rel:0,relOn:0,kills:0,wave:1,nt:0,fl:0,zoom:0,sc:[0,0],alive:1,phase:'fight',rt:0,won:0,x:0,z:0,yaw:0,pitch:0,py:0,vy:0});
+  equip();$('shopbtn').style.display='none';$('bb').style.opacity=1;spawnDM();banner('DEATHMATCH — до 20 убийств');hud();return}
+if(p.mode=='m5'){
+  Object.assign(p,{earn:0,hp:100,ar:0,money:800,slots:{1:null,2:'usp',3:'knife'},am:{usp:{mag:12,res:48}},cur:2,rel:0,relOn:0,kills:0,wave:1,nt:0,fl:0,zoom:0,sc:[0,0],alive:1});
+  equip();startBuy();return}
+Object.assign(p,{earn:0,hp:100,ar:0,money:800,slots:{1:null,2:'usp',3:'knife'},am:{usp:{mag:12,res:48}},cur:2,rel:0,relOn:0,kills:0,wave:1,nt:0,fl:0,zoom:0,sc:[0,0],alive:1});equip();startBuy()}
+function spawnDM(){clearUnits();ros=[];for(let i=0;i<6;i++){let x,z,k=0;do{x=(Math.random()-.5)*60;z=(Math.random()-.5)*60;k++}while((hit(x,z,.8)||Math.hypot(x-p.x,z-p.z)<18)&&k<40);mkUnit(0,x,z,wst())}}
+function dmRespawn(){p.alive=1;p.hp=100;p.ar=50;ps.alive=1;p.x=(Math.random()-.5)*40;p.z=(Math.random()-.5)*40;p.py=0;p.vy=0;p.yaw=Math.random()*6.28;fire=false;mfire=false;
+for(const q in p.am){p.am[q].mag=W[q]?W[q].m:12;p.am[q].res=W[q]?W[q].rs:48}equip(0);banner('Респаун');hud()}
 function jump(){if(p.alive&&p.og&&state=='play'){p.vy=7.4;p.og=0}}
-function inspect(){if(!p.alive||p.rel>0||p.draw>.3)return;if(p.ia){p.ia=0;return}p.ia=1;p.it=0;p.sf=[0,0,0,0];if(W[p.slots[p.cur]].melee)mkGhosts()}
+function inspect(){if(!p.alive||p.rel>0||p.draw>.3)return;if(p.ia){p.ia=0;return}p.ia=1;p.it=0;p.sf=[0,0,0,0];if(W[p.slots[p.cur]].melee&&ktype&&ktype!='bayonet')mkGhosts()}
 const IK=[[0,0,0,0,0,0,0],[.18,-.12,.05,.08,.1,.5,.2],[.45,-.1,.03,.1,.15,1.35,.35],[.7,-.1,.04,.1,-.2,-.9,-.3],[.88,-.04,.01,.03,0,-.2,0],[1,0,0,0,0,0,0]],piv=new V();
 function knifePose(t,ty){const e=u=>u*u*(3-2*u),sg=(a,b)=>Math.min(1,Math.max(0,(t-a)/(b-a))),P=Math.PI;
 // CS-like inspect per knife type
@@ -4601,11 +4624,11 @@ if(ty=='karambit'){
   rx=.15*A + .35*toss; ry=.4*A + .6*toss; rz=.1*A;
   gl=.8*toss;
 }else{
-  // bayonet / default: clean flip + look
-  const A=e(sg(0,.2)),B=e(sg(.2,.85)),C=e(sg(.85,1.5)),D=e(sg(1.5,2.4));
-  x=-.1*A; y=.05*A+.12*Math.sin(P*B); z=.05*A-.1*B;
-  rx=.2*A + 1.6*P*B*(1-C); ry=.7*A + .4*P*C; rz=.2*A;
-  gl=1.5*Math.pow(Math.max(0,Math.sin(B*P)),5);
+  // bayonet: calm CS-style inspect — just turn and look, no spin/glow
+  const A=e(sg(0,.25)),B=e(sg(.25,1.0)),C=e(sg(1.0,1.6)),D=e(sg(1.6,2.4));
+  x=-.04*A + .02*B; y=.03*A + .04*B; z=.02*A - .03*B;
+  rx=.12*A + .25*B - .1*C; ry=.55*A + .9*B - .35*D; rz=.08*A + .12*B;
+  gl=0;
 }
 return{q:[x,y,z,rx,ry,rz],hd,ring,gl}}
 const PT=[.2,.75,1.4,2],PSND=[[.12,900],[.14,1300],[.3,2400],[.14,1100]];
@@ -4624,10 +4647,11 @@ $('tab').innerHTML='<h3>'+(m5?'CT '+p.sc[0]+' : '+p.sc[1]+' T · раунд '+p.
 function damage(n,src){if(!p.alive)return;if(p.ar>0){const a=Math.min(p.ar,n*.5);p.ar-=a;n-=a}p.hp-=n;p.fl=1;
 if(p.hp<=0){p.alive=0;p.hp=0;ps.d++;ps.alive=0;fire=false;mfire=false;if(src){src.st.k++;feed(src.st.n,src.team,'Ты',1,src.team?'M4A1':'AK-47',0)}
 if(p.mode=='wave'){let best=+(ls('slbest')||0);if(p.wave>best)ls('slbest',p.wave);over('ТЕБЯ ПОЛОЖИЛИ','Убито: '+p.kills+' · раунд '+p.wave)}
+else if(p.mode=='dm'){dmResp=3;banner('Убит — респаун через 3с')}
 else if(p.mode=='pvp'){p.sc[0]++;banner('ТЕБЯ УБИЛИ');setTimeout(()=>mpRoundReset(0),2500)}
 else banner('Ты убит — смотришь за союзниками')}hud()}
 function killUnit(b,byP,head,killer){b.dead=.01;b.st.d++;b.st.alive=0;if(!b.team)parts=parts.filter(m=>m.userData.b!==b);
-if(byP){p.kills++;ps.k++;earn(5);const w=W[p.slots[p.cur]];p.money=Math.min(16000,p.money+w.k);pop('+$'+w.k+(head?' ХЕДШОТ':''));feed('Ты',1,b.st.n,b.team,w.n,head)}else if(killer){killer.st.k++;feed(killer.st.n,killer.team,b.st.n,b.team,killer.team?'M4A1':'AK-47',0)}
+if(byP){p.kills++;ps.k++;earn(p.mode=='dm'?15:5);const w=W[p.slots[p.cur]];p.money=Math.min(16000,p.money+(p.mode=='dm'?500:w.k));pop('+$'+(p.mode=='dm'?500:w.k)+(head?' ХЕДШОТ':''));feed('Ты',1,b.st.n,b.team,w.n,head);if(p.mode=='dm'&&p.kills>=20){earn(100);over('ПОБЕДА DM!','Убийств: '+p.kills)}}else if(killer){killer.st.k++;feed(killer.st.n,killer.team,b.st.n,b.team,killer.team?'M4A1':'AK-47',0)}
 const a=b.acts.Death;if(a){a.reset();a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true;a.play();if(b.an&&b.acts[b.an])b.acts[b.an].fadeOut(.15);b.an='Death'}hud()}
 function hitFx(h,w){
 if(h&&h.object.userData.mp&&mpOpp&&mpOpp.alive){const head=!!h.object.userData.head;const dmg=w.d*(head?4:1);
@@ -4676,14 +4700,15 @@ p.rec=Math.max(0,p.rec-dt*10);
 const dyaw=p.yaw-lyaw,dpit=p.pitch-lpit;lyaw=p.yaw;lpit=p.pitch;p.mv+=((f||s?1:0)-p.mv)*Math.min(1,dt*8);bobT+=dt*10*p.mv;
 gsx+=(Math.max(-.06,Math.min(.06,-dyaw*1.5))-gsx)*Math.min(1,dt*10);gsy+=(Math.max(-.05,Math.min(.05,dpit*1.5))-gsy)*Math.min(1,dt*10);gz=Math.max(0,gz-dt*.5);kr=Math.max(0,kr-dt*1.2);
 const kt=kat>0?Math.sin((1-kat)*Math.PI):0;kat=Math.max(0,kat-dt*3.2);const tt=p.rel>0?1-p.rel/p.relT:0,dip=p.rel>0?Math.sin(tt*Math.PI):0,mg=p.rel>0?Math.sin(Math.min(1,Math.max(0,(tt-.15)/.6))*Math.PI):0;
-const kn=!!W[p.slots[p.cur]].melee;p.draw=Math.max(0,p.draw-dt*(kn?1.8:2.6));const e2=p.draw*p.draw;
+const kn=!!W[p.slots[p.cur]].melee;p.draw=Math.max(0,p.draw-dt*(kn?1.35:2.6));const e2=p.draw*p.draw;
 // special knife draw (CS-like pull-out)
 let dx=0,dy=0,dz=0,drx=0,dry=0,drz=0;
 if(kn&&p.draw>0){const t=1-p.draw,e=t*t*(3-2*t),s=Math.sin(t*Math.PI);
-  if(ktype=='karambit'){dx=-.15*(1-e);dy=-.12*(1-e)+.05*s;dz=-.25*(1-e);drx=-.8*(1-e);dry=1.2*(1-e);drz=.4*(1-e);}
-  else if(ktype=='butterfly'){dx=-.1*(1-e);dy=-.18*(1-e);dz=-.2*(1-e);drx=-1.2*(1-e);dry=.6*(1-e);drz=1.5*(1-e)*(1-e);}
-  else if(ktype=='huntsman'){dx=-.05*(1-e);dy=-.22*(1-e)+.08*s;dz=-.15*(1-e);drx=-.5*(1-e);dry=.3*(1-e);}
-  else{dx=-.12*(1-e);dy=-.15*(1-e);dz=-.22*(1-e);drx=-.9*(1-e);dry=.5*(1-e);drz=.3*(1-e);}
+  // CS-like knife draw / pull from hip
+  if(ktype=='karambit'){dx=.18*(1-e)-.05*s;dy=-.28*(1-e)+.06*s;dz=-.35*(1-e);drx=-1.1*(1-e);dry=1.6*(1-e);drz=.5*(1-e);}
+  else if(ktype=='butterfly'){dx=.12*(1-e);dy=-.32*(1-e);dz=-.28*(1-e);drx=-1.4*(1-e);dry=.8*(1-e);drz=2.2*(1-e)*(1-e);}
+  else if(ktype=='huntsman'){dx=.08*(1-e);dy=-.35*(1-e)+.1*s;dz=-.22*(1-e);drx=-.7*(1-e);dry=.45*(1-e);drz=.15*(1-e);}
+  else{dx=.14*(1-e);dy=-.30*(1-e)+.04*s;dz=-.30*(1-e);drx=-1.0*(1-e);dry=.7*(1-e);drz=.35*(1-e);}
 }else{dx=0;dy=-.4*e2;dz=0;drx=-1.1*e2;dry=0;drz=0;}
 gun.position.set(Math.sin(bobT)*.012*p.mv+gsx+dx,Math.abs(Math.cos(bobT))*-.016*p.mv+gsy-.14*dip+dy-.1*kt,gz-.18*kt+dz);
 gun.rotation.set(kr+.3*dip+drx-1.1*kt,-gsx*2+Math.sin(bobT)*.01*p.mv+dry,.5*dip+1.2*kt+drz);
@@ -4704,7 +4729,36 @@ if(p.alive){cam.position.set(p.x,p.py+1.6-.55*p.cr,p.z);cam.rotation.set(p.pitch
 bots.slice().forEach(b=>botUpd(b,dt));
 for(let i=tr.length-1;i>=0;i--){tr[i].t-=dt;if(tr[i].t<=0){S.remove(tr[i].l);tr.splice(i,1)}}
 p.fl=Math.max(0,p.fl-dt*2);
-if(p.phase=='fight'&&!p.won){if(p.mode=='pvp'){/* scored via net */}else if(p.mode=='wave'){if(!bots.some(b=>!b.dead)){p.won=1;p.nt=3;const bn=1500+p.wave*100;p.money=Math.min(16000,p.money+bn);pop('+$'+bn+' за победу');earn(40+p.wave*10);banner('Раунд выигран!')}}
+if(p.mode=='dm'){
+  if(dmResp>0){dmResp-=dt;if(dmResp<=0)dmRespawn()}
+  // refill bots
+  if(bots.filter(b=>!b.dead).length<4&&Math.random()<.02){let x,z,k=0;do{x=(Math.random()-.5)*60;z=(Math.random()-.5)*60;k++}while((hit(x,z,.8)||Math.hypot(x-p.x,z-p.z)<20)&&k<30);mkUnit(0,x,z,wst())}
+}
+// bomb plant/defuse for 5v5
+if(p.mode=='m5'&&p.phase=='fight'){
+  const sites=[{x:-30,z:20,n:'A'},{x:30,z:20,n:'B'}];
+  // T bot plants if near site and alive
+  if(bomb.state==0){
+    for(const b of bots){if(b.team||b.dead)continue;
+      for(const s of sites){if(Math.hypot(b.x-s.x,b.z-s.z)<4){bomb.state=1;bomb.plant=3.5;bomb.x=s.x;bomb.z=s.z;bomb.site=s.n;banner('T сажают бомбу на '+s.n+'!');break}}
+      if(bomb.state)break}
+  }else if(bomb.state==1){
+    bomb.plant-=dt;
+    // cancel if planter dies or leaves
+    const planter=bots.find(b=>!b.team&&!b.dead&&Math.hypot(b.x-bomb.x,b.z-bomb.z)<5);
+    if(!planter){bomb.state=0;bomb.plant=0;banner('Посадка прервана')}
+    else if(bomb.plant<=0){bomb.state=2;bomb.t=40;banner('💣 БОМБА НА '+bomb.site+'! Диффуз!');snd(.5,.3,200)}
+  }else if(bomb.state==2){
+    bomb.t-=dt;$('bb').textContent='💣 '+Math.ceil(bomb.t)+'с · E — диффуз';
+    if(bomb.t<=0){p.won=1;p.nt=3;p.sc[1]++;banner('Бомба взорвалась — T победили');earn(20)}
+    // CT player defuse
+    if(p.alive&&Math.hypot(p.x-bomb.x,p.z-bomb.z)<2.2&&(keys.e||keys['е'])){
+      bomb.def=(bomb.def||0)+dt;$('bb').textContent='Диффуз… '+Math.ceil(5-bomb.def)+'с';
+      if(bomb.def>=5){bomb.state=3;p.won=1;p.nt=3;p.sc[0]++;p.money=Math.min(16000,p.money+3000);pop('+$3000 диффуз');earn(60);banner('Бомба обезврежена!');snd(.5,.25,1200)}
+    }else bomb.def=0;
+  }
+}
+if(p.phase=='fight'&&!p.won){if(p.mode=='pvp'||p.mode=='dm'){/* scored elsewhere */}else if(p.mode=='wave'){if(!bots.some(b=>!b.dead)){p.won=1;p.nt=3;const bn=1500+p.wave*100;p.money=Math.min(16000,p.money+bn);pop('+$'+bn+' за победу');earn(40+p.wave*10);banner('Раунд выигран!')}}
 else{p.rt-=dt;$('bb').textContent=Math.ceil(p.rt)+' с';const e=bots.filter(b=>!b.team&&!b.dead).length,al=bots.filter(b=>b.team&&!b.dead).length+(p.alive?1:0);
 if(e==0||al==0||p.rt<=0){const ct=e==0?1:al==0?0:al>=e;p.won=1;p.nt=4;p.sc[ct?0:1]++;const bn=ct?3000:1900;p.money=Math.min(16000,p.money+bn);pop('+$'+bn);earn(ct?50:15);banner(ct?'Раунд за CT!':'Раунд за T');hud()}}}
 if(p.won){p.nt-=dt;if(p.nt<=0)nextRound()}}
@@ -4755,7 +4809,7 @@ addEventListener('touchmove',e=>{if(shop||state!='play')return;for(const t of e.
 else if(o&&o.x!==undefined){const z=cam.fov/75*CFG.look;p.yaw-=(t.clientX-o.x)*.006*z;p.pitch-=(t.clientY-o.y)*.006*z*(CFG.iy?-1:1);o.x=t.clientX;o.y=t.clientY}}e.preventDefault()},{passive:false});
 const tend=e=>{for(const t of e.changedTouches){const o=T[t.identifier];if(o=='f')fire=false;if(o=='j'){joy.x=joy.y=0;$('jk').style.left=$('jk').style.top='0px';if(CFG.stick=='float')$('jb').style.display='none'}delete T[t.identifier]}};
 addEventListener('touchend',tend);addEventListener('touchcancel',tend);
-addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=1;if(e.key==' ')e.preventDefault();if(k=='tab'){e.preventDefault();if(state=='play'){tabShow=1;tabRender()}}if(state!='play')return;if(k=='f')inspect();if(k=='r')reload();if(k=='b'&&p.phase=='buy')shop?closeShop():openShop();if((k=='1'||k=='2'||k=='3')&&p.slots[+k]&&p.cur!=+k)swap()});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=1;if(e.key==' ')e.preventDefault();if(k=='tab'){e.preventDefault();if(state=='play'){tabShow=1;tabRender()}}if(state!='play')return;if(k=='f')inspect();if(k=='r')reload();if(k=='b'&&p.phase=='buy')shop?closeShop():openShop();if((k=='1'||k=='2'||k=='3')&&p.slots[+k]&&p.cur!=+k){p.ia=0;p.cur=+k;p.rel=0;p.relOn=0;p.zoom=0;equip(1)}});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;if(e.key=='Tab')tabShow=0});
 addEventListener('mousedown',e=>{if(state!='play'||touch||shop||e.target.closest('.b')||e.target.id=='gear')return;if(!document.pointerLockElement){R.domElement.requestPointerLock();return}if(e.button==2)p.zoom^=1;else mfire=true});
 addEventListener('contextmenu',e=>e.preventDefault());addEventListener('mouseup',()=>mfire=false);
@@ -4764,152 +4818,118 @@ $('sw').onclick=swap;
 function start(mode){if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();MG.gain.value=CFG.vol;MG.connect(AC.destination)}
 let mapName='dust';
 if(mode=='m5'){p.mode='m5';mapName='city'}
+else if(mode=='dm'){p.mode='dm';mapName=Math.random()<.5?'dust':'factory';banner(mapName=='dust'?'DM · Dust':'DM · Фабрика')}
 else if(mode=='pvp'){p.mode='pvp';mapName='dust'}
 else{p.mode='wave';mapName=Math.random()<.5?'dust':'factory';banner(mapName=='dust'?'Карта: Dust':'Карта: Фабрика')}
 buildMap(mapName);$('menu').style.display='none';$('dead').style.display='none';$('mpanel').style.display='none';state='play';if(window._menuAgent)window._menuAgent.visible=false;reset();setGloves();applyLayout();
 if(touch){try{document.documentElement.requestFullscreen()}catch(e){}}}
-let last_mode='wave';$('go').onclick=()=>start(last_mode='wave');$('go2').onclick=()=>start(last_mode='m5');$('go3').onclick=()=>{$('menu').style.display='none';openMP()};$('again').onclick=()=>{if(p.mode=='pvp'){mpCleanup();start('wave')}else start(last_mode)};
+let last_mode='wave';$('go').onclick=()=>start(last_mode='wave');$('go2').onclick=()=>start(last_mode='m5');$('godm').onclick=()=>start(last_mode='dm');$('go3').onclick=()=>{$('menu').style.display='none';openMP()};$('again').onclick=()=>{if(p.mode=='pvp'){mpCleanup();start('wave')}else start(last_mode)};
 try{const bst=ls('slbest');let t='Звание: '+rankLabel();if(bst)t+=' · Рекорд (волны): раунд '+bst;$('rec').textContent=t}catch(e){}
 applyLayout();applyGfx();
 
 
-// ---- multiplayer 1v1 P2P ----
-let peer=null,conn=null,mpHost=0,mpReady=0,mpPeerId='',mpOpp=null,mpNetT=0,mpMap='dust',mpRetry=0,mpJoinTries=0,mpJoinTarget='';
-// STUN + free public TURN (needed when players behind different NATs / mobile)
-const MP_ICE={iceServers:[
-  {urls:'stun:stun.l.google.com:19302'},
-  {urls:'stun:stun1.l.google.com:19302'},
-  {urls:'stun:stun.cloudflare.com:3478'},
-  {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:80?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}
-]};
-const mpSend=d=>{if(conn&&conn.open)try{conn.send(d)}catch(e){}};
-function mpCleanup(){mpReady=0;mpOpp=null;mpJoinTries=0;mpJoinTarget='';if(conn){try{conn.close()}catch(e){}}conn=null;if(peer){try{peer.destroy()}catch(e){}}peer=null;mpPeerId=''}
+// ---- multiplayer 1v1 P2P (Trystero / BitTorrent trackers) ----
+let peer=null,conn=null,mpHost=0,mpReady=0,mpPeerId='',mpOpp=null,mpNetT=0,mpMap='dust';
+let mpRoom=null,mpSendAction=null,mpSelfId='',mpPeerIds=[];
+const mpSend=d=>{if(mpSendAction)try{mpSendAction(d)}catch(e){console.warn(e)}else if(conn&&conn.open)try{conn.send(d)}catch(e){}};
+function mpCleanup(){
+  mpReady=0;mpOpp=null;mpPeerIds=[];
+  try{if(mpRoom&&mpRoom.leave)mpRoom.leave()}catch(e){}
+  mpRoom=null;mpSendAction=null;mpSelfId='';
+  if(conn){try{conn.close()}catch(e){}}conn=null;
+  if(peer){try{peer.destroy()}catch(e){}}peer=null;mpPeerId='';
+}
 function openMP(){state='mp';$('mpanel').style.display='flex';
-  let st='P2P готов · создай или введи код';
-  if(typeof Peer==='undefined')st='PeerJS не загрузился — нужен интернет';
-  else if(location.protocol==='file:')st='⚠ Открыто как file:// — WebRTC может не работать';
-  $('mpst').textContent=st;$('mpcode').textContent='';$('mpin').value='';mpRetry=0}
+  $('mpst').textContent='Загрузка P2P…';$('mpcode').textContent='';$('mpin').value='';
+  mpLoadLib().then(()=>{$('mpst').textContent='Готово · создай комнату или введи код'}).catch(e=>{$('mpst').textContent='Ошибка загрузки P2P: '+e.message});
+}
 $('mpback').onclick=()=>{mpCleanup();state='menu';$('mpanel').style.display='none';$('menu').style.display='flex'};
-function mpShortId(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='SL';for(let i=0;i<6;i++)s+=c[Math.random()*c.length|0];return s}
-function mpErrMsg(type){
-  if(type==='server-error'||type==='network')return 'Сервер недоступен. Выключи VPN и попробуй снова';
-  if(type==='peer-unavailable')return 'Комната не найдена. Хост должен ждать на экране 1v1.';
-  if(type==='unavailable-id')return 'Код занят, пробуем другой…';
-  if(type==='invalid-id')return 'Неверный код комнаты';
-  if(type==='browser-incompatible')return 'Браузер не поддерживает WebRTC';
-  return 'Ошибка: '+type;
-}
-function mpMakePeer(wantId,onOpen){
-  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен. Нужен интернет';return}
-  if(peer){try{peer.destroy()}catch(e){}}
-  peer=null;if(!mpJoinTarget)conn=null;
-  const opts={host:'0.peerjs.com',port:443,path:'/',secure:true,config:MP_ICE,debug:1,pingInterval:4000};
-  $('mpst').textContent='Подключение к PeerJS…';
-  try{peer=wantId?new Peer(wantId,opts):new Peer(opts)}catch(e){$('mpst').textContent='Ошибка Peer: '+e.message;return}
-  let opened=0;
-  const tmo=setTimeout(()=>{if(!opened)$('mpst').textContent='Таймаут PeerJS. Проверь интернет / VPN';},18000);
-  peer.on('open',pid=>{opened=1;clearTimeout(tmo);mpPeerId=pid;mpRetry=0;$('mpst').textContent=mpHost?'Онлайн ✓ Ждём соперника…':'Онлайн ✓ Соединяем…';onOpen&&onOpen(pid)});
-  peer.on('error',e=>{
-    console.error('Peer error',e.type,e);
-    if(e.type==='unavailable-id'&&wantId){clearTimeout(tmo);mpMakePeer(mpShortId(),onOpen);return}
-    if((e.type==='server-error'||e.type==='network'||e.type==='socket-error'||e.type==='socket-closed')&&!opened){
-      clearTimeout(tmo);
-      if(mpRetry<3){mpRetry++;setTimeout(()=>mpMakePeer(wantId,onOpen),800);return}
-      $('mpst').textContent=mpErrMsg('server-error');return;
+function mpShortId(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=c[Math.random()*c.length|0];return s}
+let _tryLib=null;
+function mpLoadLib(){
+  if(_tryLib)return _tryLib;
+  _tryLib=(async()=>{
+    // Trystero — serverless WebRTC (Nostr default, then torrent)
+    const urls=[
+      'https://esm.run/trystero@0.25.4',
+      'https://esm.sh/trystero@0.25.4',
+      'https://cdn.jsdelivr.net/npm/trystero@0.25.4/+esm',
+      'https://esm.sh/@trystero-p2p/torrent@0.25.4',
+      'https://esm.run/trystero'
+    ];
+    let last;
+    for(const u of urls){
+      try{
+        const m=await import(u);
+        if(m&&m.joinRoom){window._trystero=m;return m}
+      }catch(e){last=e;console.warn('trystero load fail',u,e)}
     }
-    if(e.type==='peer-unavailable'){$('mpst').textContent=mpErrMsg('peer-unavailable');return}
-    if(!opened)clearTimeout(tmo);
-    $('mpst').textContent=mpErrMsg(e.type);
-  });
-  peer.on('disconnected',()=>{if(!mpReady){try{peer.reconnect()}catch(e){}}});
-  peer.on('connection',c=>{
-    // host accepts incoming
-    if(conn&&conn.open){try{c.close()}catch(e){}return}
-    conn=c;mpBindConn();
-  });
+    throw last||new Error('trystero CDN unavailable');
+  })();
+  return _tryLib;
 }
-function mpBindConn(){
-  if(!conn)return;
-  conn.on('open',()=>{
-    $('mpst').textContent='Связь установлена!';
-    mpJoinTries=0;
-    mpOnConnected();
-  });
-  conn.on('data',mpOnData);
-  conn.on('close',()=>{
-    if(mpReady&&state=='play'&&p.mode=='pvp'){banner('Соперник отключился');over('СОПЕРНИК ВЫШЕЛ','Победа');mpCleanup()}
-    else if(!mpReady)$('mpst').textContent='Канал закрыт. Попробуй снова';
-  });
-  conn.on('error',e=>{console.error('conn error',e);$('mpst').textContent='Ошибка канала — пробуем ещё…'});
-  // ICE state hint
-  try{
-    const pc=conn.peerConnection;
-    if(pc){
-      pc.oniceconnectionstatechange=()=>{
-        const s=pc.iceConnectionState;
-        if(!mpReady&&(s==='checking'||s==='connected'||s==='completed'))$('mpst').textContent='ICE: '+s+'…';
-        if(s==='failed'){$('mpst').textContent='ICE failed — NAT. Жми ПОДКЛЮЧИТЬСЯ ещё раз';mpTryReconnect()}
-      };
-      pc.onconnectionstatechange=()=>{
-        if(pc.connectionState==='failed'&&!mpReady){$('mpst').textContent='Соединение failed. Повтор…';mpTryReconnect()}
-      };
+async function mpJoinRoom(code,isHost){
+  const lib=await mpLoadLib();
+  mpCleanup();
+  mpHost=isHost?1:0;
+  mpMap=isHost?(Math.random()<.5?'dust':'factory'):'dust';
+  $('mpst').textContent=isHost?'Создаём комнату…':'Входим в '+code+'…';
+  const roomId=('sl-'+code).toLowerCase();
+  const room=lib.joinRoom({appId:'strike-lite-v1'}, roomId);
+  mpRoom=room;
+  const [send,get]=room.makeAction('g');
+  mpSendAction=send;
+  get((data,peerId)=>{try{mpOnData(data)}catch(e){console.error(e)}});
+  const onJoin=id=>{
+    $('mpst').textContent='Соперник найден! Синхронизация…';
+    if(mpHost){
+      mpSend({t:'hello',map:mpMap,name:'Хост'});
+      setTimeout(()=>{if(!mpReady)mpBegin()},600);
+    }else{
+      mpSend({t:'hello_req'});
+      setTimeout(()=>{if(!mpReady)mpSend({t:'hello_req'})},2000);
     }
-  }catch(e){}
-}
-function mpTryReconnect(){
-  if(mpHost||!mpJoinTarget||mpReady)return;
-  if(mpJoinTries>=4){$('mpst').textContent='Не удалось связаться. Хост на экране 1v1? Один Wi‑Fi/сеть?';return}
-  mpJoinTries++;
-  setTimeout(()=>{
-    if(mpReady||!peer)return;
-    $('mpst').textContent='Повтор '+mpJoinTries+'/4 к '+mpJoinTarget+'…';
-    try{if(conn)conn.close()}catch(e){}
-    conn=peer.connect(mpJoinTarget,{reliable:true,serialization:'json'});
-    mpBindConn();
-  },1500);
-}
-$('mphost').onclick=()=>{
-  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен — нужен интернет';return}
-  $('mpst').textContent='Создаём комнату…';$('mpcode').textContent='…';
-  mpHost=1;mpMap=Math.random()<.5?'dust':'factory';mpRetry=0;mpJoinTarget='';
-  const rid=mpShortId();
-  mpMakePeer(rid,pid=>{
-    $('mpcode').textContent=pid;
-    $('mpst').textContent='Ждём соперника… Не уходи с этого экрана!';
-    try{navigator.clipboard&&navigator.clipboard.writeText(pid)}catch(e){}
-  });
-};
-$('mpjoin').onclick=()=>{
-  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен — нужен интернет';return}
-  const id=($('mpin').value||'').trim().toUpperCase().replace(/\s+/g,'');
-  if(!id){$('mpst').textContent='Введи код комнаты';return}
-  mpHost=0;mpRetry=0;mpJoinTries=0;mpJoinTarget=id;
-  $('mpst').textContent='Подключаемся к '+id+'…';
-  mpMakePeer(null,()=>{
-    if(!peer)return;
-    // small delay so host is fully registered on broker
-    setTimeout(()=>{
-      if(!peer||mpReady)return;
-      conn=peer.connect(id,{reliable:true,serialization:'json'});
-      if(!conn){$('mpst').textContent='Не удалось начать соединение';return}
-      mpBindConn();
-      setTimeout(()=>{if(!mpReady&&(!conn||!conn.open))mpTryReconnect()},8000);
-      setTimeout(()=>{if(!mpReady&&(!conn||!conn.open))$('mpst').textContent='Нет ответа. Хост должен ждать на экране 1v1. Код: '+id},20000);
-    },700);
-  });
-};
-function mpOnConnected(){
-  if(mpHost){
-    mpSend({t:'hello',map:mpMap,name:'Хост'});
-    setTimeout(()=>mpBegin(),300);
+  };
+  const onLeave=id=>{
+    if(mpReady&&state=='play'&&p.mode=='pvp'){banner('Соперник вышел');over('СОПЕРНИК ВЫШЕЛ','Победа');mpCleanup()}
+    else if(!mpReady)$('mpst').textContent='Соперник вышел';
+  };
+  // support both API styles (function vs property)
+  try{if(typeof room.onPeerJoin==='function')room.onPeerJoin(onJoin);else room.onPeerJoin=onJoin}catch(e){room.onPeerJoin=onJoin}
+  try{if(typeof room.onPeerLeave==='function')room.onPeerLeave(onLeave);else room.onPeerLeave=onLeave}catch(e){room.onPeerLeave=onLeave}
+  try{mpSelfId=room.selfId||''}catch(e){}
+  if(isHost){
+    $('mpcode').textContent=code;
+    $('mpst').textContent='Ждём соперника… Код: '+code+' (не закрывай)';
+    try{navigator.clipboard&&navigator.clipboard.writeText(code)}catch(e){}
   }else{
-    // joiner: ask host to hello if we connected first
-    mpSend({t:'hello_req'});
+    $('mpst').textContent='В комнате '+code+', поиск хоста…';
+    setTimeout(()=>{
+      try{
+        const peers=room.getPeers?Object.keys(room.getPeers()):[];
+        if(peers.length)onJoin(peers[0]);
+      }catch(e){}
+    },1500);
   }
+  setTimeout(()=>{
+    if(!mpReady)$('mpst').textContent=isHost?('Пока пусто. Код: '+code+' — второй должен ПОДКЛЮЧИТЬСЯ'):('Хост не найден. Он нажал СОЗДАТЬ и ждёт на экране?');
+  },30000);
 }
+$('mphost').onclick=async()=>{
+  try{
+    $('mpst').textContent='Создаём…';$('mpcode').textContent='…';
+    await mpJoinRoom(mpShortId(),1);
+  }catch(e){$('mpst').textContent='Ошибка: '+(e.message||e);console.error(e)}
+};
+$('mpjoin').onclick=async()=>{
+  const id=($('mpin').value||'').trim().toUpperCase().replace(/\s+/g,'');
+  if(!id||id.length<4){$('mpst').textContent='Введи код комнаты (6 символов)';return}
+  try{
+    $('mpst').textContent='Подключаемся…';
+    await mpJoinRoom(id,0);
+  }catch(e){$('mpst').textContent='Ошибка: '+(e.message||e);console.error(e)}
+};
+function mpOnConnected(){/* unused with trystero */}
 function mpBegin(){
   p.mode='pvp';last_mode='pvp';
   buildMap(mpMap);$('mpanel').style.display='none';$('menu').style.display='none';$('dead').style.display='none';state='play';
@@ -4943,8 +4963,9 @@ function mpSpawnOpp(){
 }
 function mpOnData(d){
   if(!d||!d.t)return;
-  if(d.t=='hello_req'&&mpHost){mpSend({t:'hello',map:mpMap,name:'Хост'});return}
-  if(d.t=='hello'){mpMap=d.map||'dust';mpSend({t:'hello_ack'});if(!mpReady)mpBegin()}
+  if(d.t=='hello_req'){if(mpHost){mpSend({t:'hello',map:mpMap,name:'Хост'});if(!mpReady)setTimeout(()=>mpBegin(),400)}return}
+  if(d.t=='hello'){mpMap=d.map||'dust';mpSend({t:'hello_ack'});if(!mpReady)mpBegin();return}
+  if(d.t=='hello_ack'){if(mpHost&&!mpReady)mpBegin();return}
   if(d.t=='hello_ack'&&mpHost){/* already began */}
   if(d.t=='st'&&mpOpp){
     mpOpp.x=d.x;mpOpp.z=d.z;mpOpp.yaw=d.yaw;mpOpp.hp=d.hp;mpOpp.alive=d.alive;
@@ -4998,7 +5019,7 @@ if(r.coins){SV.coins+=r.coins;pop('+'+r.coins+' 🪙')}else{SV.inv.push(r.item);
 const TX={};function tx(kit){if(TX[kit])return TX[kit];const im=new Image(),t=new THREE.Texture(im);t.flipY=false;t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;im.onload=()=>t.needsUpdate=true;im.src=TEXK[kit];return TX[kit]=t}
 function fixProp(g,k){g.scene.traverse(o=>{if(o.isMesh){const m=o.material;m.map=tx(KIT[k]);m.metalness=0;m.roughness=1;m.needsUpdate=true}})}
 let pend=Object.keys(MODELS).length+Object.keys(PROPS).length;const gl=new THREE.GLTFLoader(),err=e=>{$('go').textContent='ОШИБКА';console.error(e)};
-const done=()=>{if(!--pend){buildMap('dust');$('go').disabled=$('go2').disabled=$('go3').disabled=false;['invb','casb','bpb'].forEach(i=>$(i).disabled=false);updCoins();$('go').textContent='ВОЛНЫ';$('go2').textContent='5 НА 5';$('go3').textContent='1 НА 1';
+const done=()=>{if(!--pend){buildMap('dust');$('go').disabled=$('go2').disabled=$('go3').disabled=$('godm').disabled=false;['invb','casb','bpb'].forEach(i=>$(i).disabled=false);updCoins();$('go').textContent='ВОЛНЫ';$('go2').textContent='5 НА 5';$('godm').textContent='DEATHMATCH';$('go3').textContent='1 НА 1';
 // decorative CT agent in menu
 try{const ma=THREE.SkeletonUtils.clone(M.botct.scene);ma.scale.setScalar(1.1);ma.position.set(4,0,28);ma.rotation.y=-.6;S.add(ma);window._menuAgent=ma;
 const mx=new THREE.AnimationMixer(ma);const idle=M.botct.animations.find(a=>a.name=='Idle'||a.name.includes('Idle'));
