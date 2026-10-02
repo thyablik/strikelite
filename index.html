@@ -1,5 +1,6 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Strike Lite</title>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>window.Peer||document.write('<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"><\/script>')</script>
 <!-- Props: Kenney Starter Kits (CC0/MIT). Models: soldier (Quaternius Toon Shooter Kit, CC0) and weapons (Tiny Strike by Guy Zyskind, ISC) -->
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <style>
@@ -103,7 +104,7 @@ body:not([data-s=play]):not([data-s=edit]) .hud{display:none}.b{touch-action:non
 <p id="rec"></p><div class="cnb">🪙 <b class="cn">0</b></div><div class="bx"><button id="go" disabled>ЗАГРУЗКА…</button><button id="go2" class="alt" disabled>5 НА 5</button><button id="go3" class="alt" disabled style="background:linear-gradient(#ff6a4a,#c02818);box-shadow:0 6px 0 #6a1808,0 10px 24px #0008;color:#fff">1 НА 1</button></div><div class="bx"><button id="invb" class="sm" disabled>🎒 ИНВЕНТАРЬ</button><button id="casb" class="sm" disabled>📦 КЕЙСЫ</button><button id="bpb" class="sm" disabled>🎖 БАТТЛПАСС</button></div><button id="setb" class="alt sm">⚙ НАСТРОЙКИ</button></div>
 <div id="mpanel" class="ov" style="display:none;z-index:22"><h1 style="font-size:48px">1 НА 1</h1>
 <div class="sub" id="mpst">P2P · PeerJS</div>
-<p style="max-width:420px;font:16px sans-serif;opacity:.85">Создай комнату и отправь код другу, или введи его код чтобы подключиться. Нужен интернет.</p>
+<p style="max-width:440px;font:15px sans-serif;opacity:.85">1) Один жмёт СОЗДАТЬ и копирует код<br>2) Второй вставляет код и жмёт ПОДКЛЮЧИТЬСЯ<br>Нужен интернет. Не открывай как file:// — лучше через Live Server / localhost.<br>Если ошибка сервера: не открывай file://, выключи VPN, нажми СОЗДАТЬ снова.</p>
 <div class="cnb" id="mpcode" style="font-size:36px;letter-spacing:4px;min-height:44px"></div>
 <input id="mpin" placeholder="Код комнаты" style="font:22px Impact,sans-serif;padding:10px 18px;border-radius:8px;border:2px solid #f5b73a88;background:#0008;color:#ffd75a;text-align:center;letter-spacing:3px;width:min(280px,80vw)">
 <div class="bx"><button id="mphost">СОЗДАТЬ</button><button id="mpjoin" class="alt">ПОДКЛЮЧИТЬСЯ</button></div>
@@ -4773,37 +4774,83 @@ applyLayout();applyGfx();
 
 
 // ---- multiplayer 1v1 P2P ----
-let peer=null,conn=null,mpHost=0,mpReady=0,mpPeerId='',mpOpp=null,mpNetT=0,mpMap='dust';
+let peer=null,conn=null,mpHost=0,mpReady=0,mpPeerId='',mpOpp=null,mpNetT=0,mpMap='dust',mpRetry=0;
+const MP_ICE={iceServers:[
+  {urls:'stun:stun.l.google.com:19302'},
+  {urls:'stun:stun1.l.google.com:19302'},
+  {urls:'stun:stun.cloudflare.com:3478'},
+  {urls:'stun:global.stun.twilio.com:3478'}
+]};
 const mpSend=d=>{if(conn&&conn.open)try{conn.send(d)}catch(e){}};
 function mpCleanup(){mpReady=0;mpOpp=null;if(conn){try{conn.close()}catch(e){}}conn=null;if(peer){try{peer.destroy()}catch(e){}}peer=null;mpPeerId=''}
-function openMP(){state='mp';$('mpanel').style.display='flex';$('mpst').textContent='P2P · PeerJS';$('mpcode').textContent='';$('mpin').value=''}
+function openMP(){state='mp';$('mpanel').style.display='flex';
+  let st='P2P готов · создай или введи код';
+  if(typeof Peer==='undefined')st='PeerJS не загрузился — нужен интернет';
+  else if(location.protocol==='file:')st='⚠ Открыто как file:// — WebRTC может не работать. Запусти через localhost';
+  $('mpst').textContent=st;$('mpcode').textContent='';$('mpin').value='';mpRetry=0}
 $('mpback').onclick=()=>{mpCleanup();state='menu';$('mpanel').style.display='none';$('menu').style.display='flex'};
-function mpMakePeer(id,onOpen){
-  mpCleanup();
-  const opts={debug:1};
-  peer=id?new Peer(id,opts):new Peer(opts);
-  peer.on('open',pid=>{mpPeerId=pid;onOpen&&onOpen(pid)});
-  peer.on('error',e=>{$('mpst').textContent='Ошибка: '+e.type;console.error(e)});
-  peer.on('disconnected',()=>{$('mpst').textContent='Отключён от сервера'});
-  peer.on('connection',c=>{if(conn){c.close();return}conn=c;mpBindConn()});
+function mpShortId(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='SL';for(let i=0;i<6;i++)s+=c[Math.random()*c.length|0];return s}
+function mpErrMsg(type){
+  if(type==='server-error'||type==='network')return 'Сервер недоступен. 1) Не file:// 2) Выключи VPN 3) Жми СОЗДАТЬ ещё раз';
+  if(type==='peer-unavailable')return 'Комната не найдена. Проверь код — хост должен быть онлайн.';
+  if(type==='unavailable-id')return 'Код занят, пробуем другой…';
+  if(type==='invalid-id')return 'Неверный код комнаты';
+  if(type==='browser-incompatible')return 'Браузер не поддерживает WebRTC';
+  return 'Ошибка: '+type;
+}
+function mpMakePeer(wantId,onOpen){
+  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен. Нужен интернет + http/https (не file://)';return}
+  if(peer){try{peer.destroy()}catch(e){}}
+  peer=null;conn=null;
+  // Official PeerJS Cloud (default) + STUN. Retry once with explicit host if needed.
+  const opts={config:MP_ICE,debug:2,pingInterval:3000};
+  if(mpRetry>0){opts.host='0.peerjs.com';opts.port=443;opts.path='/';opts.secure=true}
+  $('mpst').textContent=mpRetry?'Повтор к 0.peerjs.com…':'Подключение к PeerJS Cloud…';
+  try{peer=wantId?new Peer(wantId,opts):new Peer(opts)}catch(e){$('mpst').textContent='Ошибка Peer: '+e.message;return}
+  let opened=0;
+  const tmo=setTimeout(()=>{if(!opened){$('mpst').textContent='Таймаут сервера. Проверь интернет / не file:// / VPN';}},15000);
+  peer.on('open',pid=>{opened=1;clearTimeout(tmo);mpPeerId=pid;mpRetry=0;$('mpst').textContent='Онлайн ✓';onOpen&&onOpen(pid)});
+  peer.on('error',e=>{
+    console.error('Peer error',e.type,e);
+    if(e.type==='unavailable-id'&&wantId){clearTimeout(tmo);mpMakePeer(mpShortId(),onOpen);return}
+    if((e.type==='server-error'||e.type==='network'||e.type==='socket-error'||e.type==='socket-closed')&&!opened){
+      clearTimeout(tmo);
+      if(mpRetry<2){mpRetry++;setTimeout(()=>mpMakePeer(wantId,onOpen),600);return}
+      $('mpst').textContent=mpErrMsg('server-error');
+      return;
+    }
+    if(!opened)clearTimeout(tmo);
+    $('mpst').textContent=mpErrMsg(e.type);
+  });
+  peer.on('disconnected',()=>{if(!mpReady)$('mpst').textContent='Отключён — переподключение…';try{peer.reconnect()}catch(e){}});
+  peer.on('connection',c=>{if(conn&&conn.open){c.close();return}conn=c;mpBindConn()});
 }
 function mpBindConn(){
   conn.on('open',()=>{$('mpst').textContent='Связь установлена!';mpOnConnected()});
   conn.on('data',mpOnData);
   conn.on('close',()=>{banner('Соперник отключился');mpReady=0;if(state=='play'&&p.mode=='pvp'){over('СОПЕРНИК ВЫШЕЛ','Победа');mpCleanup()}});
-  conn.on('error',e=>{$('mpst').textContent='Ошибка связи'});
+  conn.on('error',e=>{$('mpst').textContent='Ошибка канала: '+(e.message||e.type||'связь')});
 }
 $('mphost').onclick=()=>{
-  $('mpst').textContent='Создаём комнату…';
-  mpHost=1;mpMap=Math.random()<.5?'dust':'factory';
-  mpMakePeer(null,pid=>{$('mpcode').textContent=pid;$('mpst').textContent='Ждём соперника… Отправь код другу'});
+  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен — нужен интернет и http/https';return}
+  $('mpst').textContent='Создаём комнату…';$('mpcode').textContent='…';
+  mpHost=1;mpMap=Math.random()<.5?'dust':'factory';mpRetry=0;
+  const rid=mpShortId();
+  mpMakePeer(rid,pid=>{$('mpcode').textContent=pid;$('mpst').textContent='Ждём соперника… Отправь код другу';
+    try{navigator.clipboard&&navigator.clipboard.writeText(pid)}catch(e){}});
 };
 $('mpjoin').onclick=()=>{
-  const id=($('mpin').value||'').trim();if(!id){$('mpst').textContent='Введи код';return}
-  $('mpst').textContent='Подключаемся…';mpHost=0;
+  if(typeof Peer==='undefined'){$('mpst').textContent='PeerJS не загружен — нужен интернет и http/https';return}
+  const id=($('mpin').value||'').trim().toUpperCase().replace(/\s+/g,'');
+  if(!id){$('mpst').textContent='Введи код комнаты';return}
+  $('mpst').textContent='Подключаемся к '+id+'…';mpHost=0;mpRetry=0;
   mpMakePeer(null,()=>{
-    conn=peer.connect(id,{reliable:true});
+    if(!peer)return;
+    conn=peer.connect(id,{reliable:true,serialization:'json'});
+    if(!conn){$('mpst').textContent='Не удалось начать соединение';return}
     mpBindConn();
+    // timeout if host offline
+    setTimeout(()=>{if(!mpReady&&(!conn||!conn.open))$('mpst').textContent='Нет ответа. Хост онлайн? Код верный?'},12000);
   });
 };
 function mpOnConnected(){
